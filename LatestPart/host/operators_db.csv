@@ -1,2 +1,0 @@
-id,last_name,first_name,middle_name,age,date,time,software_start_time,drive_duration,pulse_threshold_critical,pulse_normal,current_pulse,operator_status
-0,Чернов,Константин,Вячеславович,17,25.11.2025,19:05:07,19:00:32,00:02:14,140,120,63.0,NORMAL
