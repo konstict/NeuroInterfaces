@@ -35,9 +35,7 @@ class Program(): # main функция GUI программы
 
 
     def __del__(self): # закрытие программы - прерывание активности сокета и "уничтожение" запущенной программы
-        serverRecver.conn.shutdown(0)
-        serverRecver.conn.close()
-        serverRecver.conn = None
+        serverRecver.shutdownSocket()
         sys.exit(0)
     def finishProgram(self): # функция, по названию которой вызывается деструктор
         self.__del__()
@@ -65,15 +63,22 @@ class Program(): # main функция GUI программы
 
 
     def initDB(self): # инициализация базы данных в текстовом формате operators_db.csv
-        data = None
-        if not os.path.exists('./operators_db.csv'):
+        try:
+            data = None
+            if not os.path.exists('./operators_db.csv'):
+                data = pandas.DataFrame(columns=[
+                    'id', 'last_name', 'first_name', 'middle_name', 'age', 'date', 'time', 'software_start_time', 'drive_duration', 'pulse_threshold_critical', 'pulse_normal', 'current_pulse', 'operator_status'
+                ])
+                data.to_csv('./operators_db.csv', index=False)
+                return data
+            data = pandas.read_csv('./operators_db.csv')
+            return data
+        except:
             data = pandas.DataFrame(columns=[
                 'id', 'last_name', 'first_name', 'middle_name', 'age', 'date', 'time', 'software_start_time', 'drive_duration', 'pulse_threshold_critical', 'pulse_normal', 'current_pulse', 'operator_status'
             ])
             data.to_csv('./operators_db.csv', index=False)
             return data
-        data = pandas.read_csv('./operators_db.csv')
-        return data
 
 
     def updateTime(self):
