@@ -1,10 +1,10 @@
 import socket, struct, os, threading
 
 
-address, port = '', 5050
+address, port = '', 5050 # айпи не требуется, порт можно изменить (под устройства)
 
 
-def recvData(sock, size):
+def recvData(sock, size): # полное принятие данных с указанным размером
     data = b''
     while size > len(data):
         thisData = sock.recv(size - len(data))
@@ -14,7 +14,7 @@ def recvData(sock, size):
     return data
 
 
-def recvFile(sock):
+def recvFile(sock): # принятие конкретного файла (размер названия и название, размер данных и данные)
     sizeName = struct.unpack('!I', recvData(sock, 4))[0]
     name = recvData(sock, int(sizeName)).decode()
 
@@ -33,13 +33,13 @@ def recvFile(sock):
             dataSize -= 1024
 
 
-def recvAllFiles(sock):
+def recvAllFiles(sock): # принять все файлы
     while True:
         recvFile(sock)
 
 
 sock = None
-def server():
+def server(): # создание сервера, установление связи с клиентом
     try:
         global sock
         sock = socket.create_server((address, port))
@@ -51,7 +51,7 @@ def server():
         print('server')
 
 
-def main():
+def main(): # запуск сервера в новом потоке
     try:
         thr = threading.Thread(target=server, daemon=False)
         thr.start()
@@ -60,4 +60,5 @@ def main():
 
 
 if __name__ == '__main__':
+
     main()
