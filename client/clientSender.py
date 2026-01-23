@@ -1,6 +1,8 @@
 import socket, struct, os, threading
 
 
+# '169.254.82.167'
+# '127.0.0.1'
 address, port = '127.0.0.1', 5050 # айпи и порт можно изменить (под устройства)
 
 
@@ -27,13 +29,11 @@ def sendFile(sock, path, name): # отправка конкретного фай
 
 def sendAllFiles(sock): # отправка всех нужных файлов (БД и фотографии операторов)
     sendFile(sock, './', 'operators_db.csv')
-    if not os.path.exists('./operators'):
-        os.mkdir('operators')
     for file in os.listdir('./operators'):
         sendFile(sock, './operators/', file)
 
 
-sock = None
+sock = socket.socket()
 def client(): # установление связи с сервером по айпи адресу и порту
     try:
         global sock
@@ -42,6 +42,19 @@ def client(): # установление связи с сервером по а�
             sendAllFiles(sock)
     except:
         print('client')
+
+
+def shutdownSocket():
+    try:
+        global sock
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        sock.close()
+        sock = None
+    except:
+        pass
 
 
 def main(): # запуск клиента в новом потоке
