@@ -1,6 +1,10 @@
-import os, math, pandas, datetime, time, sys, pygame
+import os, math, sys 
+import datetime, time
+import pygame, pandas
+
 import cv2, face_recognition
 from mediapipe.python.solutions import face_mesh
+
 import serial
 from serial.tools import list_ports
 from collections import deque
@@ -8,6 +12,7 @@ from collections import deque
 from PyQt5.QtCore import QTimer, QPoint, Qt
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from PyQt5.QtGui import QImage, QPixmap
+
 
 from firstw import Ui_MainWindow as firstClass
 from reg import Ui_MainWindow as regClass
@@ -801,4 +806,5 @@ class Program():
 
 app = QApplication([])
 pr = Program()
+
 app.exec()
