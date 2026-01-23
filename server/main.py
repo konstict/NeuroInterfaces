@@ -13,8 +13,8 @@ from upr import Ui_MainWindow as uprClass
 import serverRecver
 
 
-class Program():
-    def __init__(self):
+class Program(): # main функция GUI программы
+    def __init__(self): # запуск программы - иницилизация всех переменных и запуск первого окна
         self.pos = None
         self.windowID = 0
 
@@ -34,28 +34,28 @@ class Program():
         self.createSetidWindow()
 
 
-    def __del__(self):
+    def __del__(self): # закрытие программы - прерывание активности сокета и "уничтожение" запущенной программы
         serverRecver.conn.shutdown(0)
         serverRecver.conn.close()
         serverRecver.conn = None
         sys.exit(0)
-    def finishProgram(self):
+    def finishProgram(self): # функция, по названию которой вызывается деструктор
         self.__del__()
-    def finishIdent(self):
+    def finishIdent(self): # закрытие только лишь диалогового окна
         try:
             self.ident.close()
         except:
             pass
         if self.windowID == 4:
             self.startAuthOperator()
-    def mousePress(self, event):
+    def mousePress(self, event): # начало клика - готовность к передвижению окна
         self.pos = event.globalPos()
-    def mouseMove(self, event, window):
+    def mouseMove(self, event, window): # движение мыши - движение окна
         window.move(window.pos() + (QPoint(event.globalPos() - QPoint(self.pos))))
         self.pos = event.globalPos()
-    def mouseRelease(self):
+    def mouseRelease(self): # конец клика - завершение передвижения окна
         self.pos = None
-    def createTemplateWindow(self, window, windowUI):
+    def createTemplateWindow(self, window, windowUI): # шаблон для создания форм (окон)
         window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         windowUI.label.mouseReleaseEvent = lambda event: self.finishProgram()
         windowUI.widget.mousePressEvent = lambda event: self.mousePress(event)
@@ -64,7 +64,7 @@ class Program():
         window.show()
 
 
-    def initDB(self):
+    def initDB(self): # инициализация базы данных в текстовом формате operators_db.csv
         data = None
         if not os.path.exists('./operators_db.csv'):
             data = pandas.DataFrame(columns=[
@@ -77,6 +77,9 @@ class Program():
 
 
     def updateTime(self):
+        # вызов функции по PyQt Timer происходит каждую секунду
+        # обновляется содержимое базы данных и окон
+        
         data = self.initDB()
         
         self.found = False
@@ -134,14 +137,14 @@ class Program():
                 self.uprUI.label_13.setText('Необходимо связаться с водителем!')
 
 
-    def updateServerRecver(self):
+    def updateServerRecver(self): # постоянный вызов для получения с клиента информации
         try:
             serverRecver.main()
         except:
             pass
 
 
-    def createSetidWindow(self):
+    def createSetidWindow(self): # создание формы для введения айди оператора
         self.windowID = 1
         self.setid = QMainWindow()
         self.setidUI = setidClass()
@@ -155,7 +158,7 @@ class Program():
         self.setidUI.pushButton_3.clicked.connect(self.createUprWindow)
 
 
-    def createUprWindow(self):
+    def createUprWindow(self): # главная форма, отображение информации о операторе по айди
         if not self.setidUI.plainTextEdit_3.toPlainText().isdigit():
             return
         self.operatorID = int(self.setidUI.plainTextEdit_3.toPlainText())
@@ -185,5 +188,4 @@ class Program():
 
 app = QApplication([])
 pr = Program()
-
-app.exec()
+app.exec() # запуск
