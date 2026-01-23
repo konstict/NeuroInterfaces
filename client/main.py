@@ -34,7 +34,7 @@ class Program(): # main функция GUI программы
         self.pos = None
         self.windowID = 0
 
-        self.after = 0 # 0 - reg; 1 - auth
+        self.after = 0 # 0 - регистрация; 1 - авторизация
         self.logined = False
         self.found = False
         self.fullMode = False
@@ -77,9 +77,9 @@ class Program(): # main функция GUI программы
             min_tracking_confidence=0.6,
             static_image_mode=False
         )
-        self.leftEye = [362, 386, 385, 263, 374, 373]
-        self.rightEye = [33, 159, 158, 133, 145, 153]
-        self.other = [1, 152] # 1 - nose, 152 - podborodok
+        self.leftEye = [362, 386, 385, 263, 374, 373] # айди для работы с сеткой лица (левый глаз)
+        self.rightEye = [33, 159, 158, 133, 145, 153] # правый глаз
+        self.other = [1, 152] # 1 - нос, 152 - подбородок
         self.latestCameraUprTime = 0
         self.earTime = 0
         self.headTime = 0
@@ -322,14 +322,14 @@ class Program(): # main функция GUI программы
                 self.uprUI.label_12.setText('')
 
 
-    def updateClientSender(self):
+    def updateClientSender(self): # постоянный вызов для отправки на сервер информации
         try:
             clientSender.main()
         except:
             pass
 
 
-    def updateCamera(self):
+    def updateCamera(self): # обновление камеры и нахождения лица при авторизации или регистрации 
         ok, frame = self.cap.read()
         frameRect = frame.copy()
         if not ok:
@@ -370,7 +370,7 @@ class Program(): # main функция GUI программы
             ))
         
 
-    def updatePulse(self):
+    def updatePulse(self): # обновление пульса (из платы Arduino)
         try:
             if self.com.in_waiting > 0:
                 value = int(self.com.readline())
@@ -388,7 +388,7 @@ class Program(): # main функция GUI программы
             return
 
 
-    def updateCameraUpr(self):
+    def updateCameraUpr(self): # обновление камеры 
         ok, frame = self.cap.read()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         if not ok:
@@ -808,4 +808,5 @@ app = QApplication([])
 pr = Program()
 
 app.exec()
+
 
