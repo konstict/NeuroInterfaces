@@ -388,7 +388,7 @@ class Program(): # main функция GUI программы
             return
 
 
-    def updateCameraUpr(self): # обновление камеры 
+    def updateCameraUpr(self): # обновление камеры в последней форме Управление
         ok, frame = self.cap.read()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         if not ok:
@@ -438,7 +438,7 @@ class Program(): # main функция GUI программы
             ))
 
 
-    def videoUpdate(self):
+    def videoUpdate(self): # обновление видеопотока с файла
         ok, frame = self.video.read()
         if not ok:
             self.videoUpdateTimer.stop()
@@ -451,7 +451,9 @@ class Program(): # main функция GUI программы
             ))
 
 
-    def getEar(self, leftEye, rightEye):
+    def getEar(self, leftEye, rightEye): 
+        # получение EAR (Eyes Aspect Ratio) - 
+        # прямо говоря это формат точек глаз, чем меньше расстояние от верхних точек, до нижних - тем меньше формат и тем меньше данное значение
         y = (
             math.sqrt((leftEye[1].y - leftEye[4].y)**2 + (leftEye[1].x - leftEye[4].x)**2) + math.sqrt((leftEye[2].y - leftEye[5].y)**2 + (leftEye[2].x - leftEye[5].x)**2) +
             math.sqrt((rightEye[1].y - rightEye[4].y)**2 + (rightEye[1].x - rightEye[4].x)**2) + math.sqrt((rightEye[2].y - rightEye[5].y)**2 + (rightEye[2].x - rightEye[5].x)**2)
@@ -463,7 +465,9 @@ class Program(): # main функция GUI программы
         return y / x
 
 
-    def finishRegOperator(self):
+    def finishRegOperator(self): 
+        # завершение регистрации оператора (проверка на нахождение данного оператора уже в системе)
+        # и при успешной регистрации - заполнение его строчки в БД, сохранение его фотографии и выдать доступ к дальнейшим окнам
         data = self.initDB()
 
         self.logined = False
@@ -509,6 +513,8 @@ class Program(): # main функция GUI программы
 
 
     def finishAuthOperator(self):
+        # завершение авторизации оператора (проверка на нахождение данного оператора под указанным айди в системе)
+        # и при успешной авторизации - выдать доступ к дальнейшим окнам
         data = self.initDB()
 
         self.logined = False
@@ -539,7 +545,7 @@ class Program(): # main функция GUI программы
         self.logined = True
 
 
-    def startCameraUprUpdate(self):
+    def startCameraUprUpdate(self): # безопасно запустить камеру для формы Управление
         if self.cameraUprUpdateTimer.isActive():
             return
         if self.cap is not None:
@@ -549,7 +555,7 @@ class Program(): # main функция GUI программы
         self.cameraUprUpdateTimer.start(20)
 
 
-    def startVideoUpdate(self):
+    def startVideoUpdate(self): # безопасно запустить видеопоток для формы Управление
         if self.videoUpdateTimer.isActive():
             return
         if self.video is not None:
@@ -559,7 +565,7 @@ class Program(): # main функция GUI программы
         self.videoUpdateTimer.start(20)
 
 
-    def startPulseUpdate(self):
+    def startPulseUpdate(self): # безопасно запустить получение пульса для формы Управление
         if self.pulseUpdateTimer.isActive():
             return
         self.pulse = 0
@@ -579,7 +585,7 @@ class Program(): # main функция GUI программы
                 return
 
 
-    def startRegOperatorPulse(self):
+    def startRegOperatorPulse(self): # записывает порог и норму пульса, срабатывает при нажатии на кнопку
         if not self.analizUI.plainTextEdit.toPlainText().isdigit() or not self.analizUI.plainTextEdit_2.toPlainText().isdigit():
             return
         data = self.initDB()
@@ -598,7 +604,7 @@ class Program(): # main функция GUI программы
             operatorIndex += 1
 
 
-    def startAuthOperator(self):
+    def startAuthOperator(self): # безопасно запустить камеру для авторизации пользователя
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
         if self.cap is not None:
@@ -608,7 +614,7 @@ class Program(): # main функция GUI программы
         self.cameraUpdateTimer.start(20)
 
 
-    def startRegOperator(self):
+    def startRegOperator(self): # безопасно запустить камеру для регистрации пользователя, если он указал валидные значения про себя
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
         if self.cap is not None:
@@ -621,7 +627,7 @@ class Program(): # main функция GUI программы
         # print(123)
         
 
-    def createFirstWindow(self):
+    def createFirstWindow(self): # создать первую форму выбора - регистрация или авторизация
         self.windowID = 1
         self.first = QMainWindow()
         self.firstUI = firstClass()
@@ -641,7 +647,7 @@ class Program(): # main функция GUI программы
         self.firstUI.pushButton_2.clicked.connect(self.createSetidWindow)
 
 
-    def createRegWindow(self):
+    def createRegWindow(self): # форма регистрации
         self.windowID = 2
         self.reg = QMainWindow()
         self.regUI = regClass()
@@ -657,7 +663,7 @@ class Program(): # main функция GUI программы
         self.regUI.pushButton_2.clicked.connect(self.createInstrWindow)
 
 
-    def createSetidWindow(self):
+    def createSetidWindow(self): # форма для написания айди при авторизации
         self.windowID = 3
         self.setid = QMainWindow()
         self.setidUI = setidClass()
@@ -672,7 +678,7 @@ class Program(): # main функция GUI программы
         self.setidUI.pushButton_2.clicked.connect(self.createAuthWindow)
 
 
-    def createAuthWindow(self):
+    def createAuthWindow(self): # форма авторизации
         if not self.setidUI.plainTextEdit.toPlainText().isdigit():
             return
         self.operatorID = int(self.setidUI.plainTextEdit.toPlainText().strip())
@@ -701,7 +707,7 @@ class Program(): # main функция GUI программы
         self.startAuthOperator()
 
 
-    def createIdentWindow(self):
+    def createIdentWindow(self): # форма диалогового окна для прохождения повторной идентификации
         self.found = False
         self.ident = QMainWindow()
         self.identUI = identClass()
@@ -716,7 +722,7 @@ class Program(): # main функция GUI программы
         self.identUI.pushButton_2.clicked.connect(self.finishIdent)
 
 
-    def createInstrWindow(self):
+    def createInstrWindow(self): # форма инструкции
         if not self.found and not self.logined:
             return
         
@@ -748,7 +754,7 @@ class Program(): # main функция GUI программы
         self.instrUI.pushButton_4.clicked.connect(self.createUprWindow)
 
 
-    def createAnalizWindow(self):
+    def createAnalizWindow(self): # форма анализа
         self.windowID = 6
         self.analiz = QMainWindow()
         self.analizUI = analizRegClass()
@@ -781,7 +787,7 @@ class Program(): # main функция GUI программы
             self.analizUI.pushButton_6.clicked.connect(self.startRegOperatorPulse)
 
 
-    def createUprWindow(self):
+    def createUprWindow(self): # форма управления
         if not self.fullMode:
             return
         
@@ -806,7 +812,4 @@ class Program(): # main функция GUI программы
 
 app = QApplication([])
 pr = Program()
-
-app.exec()
-
-
+app.exec() # запуск
