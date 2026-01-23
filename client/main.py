@@ -138,7 +138,9 @@ class Program(): # main функция GUI программы
         return data
 
 
-    def updateTime(self): # вызов функции по PyQt Timer происходит каждую секунду. обновляется содержимое базы данных и окон
+    def updateTime(self): 
+        # вызов функции по PyQt Timer происходит каждую секунду
+        # обновляется содержимое базы данных и окон
         data = self.initDB()
         self.timeNow = datetime.datetime.now()
         
@@ -468,6 +470,7 @@ class Program(): # main функция GUI программы
     def finishRegOperator(self): 
         # завершение регистрации оператора (проверка на нахождение данного оператора уже в системе)
         # и при успешной регистрации - заполнение его строчки в БД, сохранение его фотографии и выдать доступ к дальнейшим окнам
+        
         data = self.initDB()
 
         self.logined = False
@@ -515,6 +518,7 @@ class Program(): # main функция GUI программы
     def finishAuthOperator(self):
         # завершение авторизации оператора (проверка на нахождение данного оператора под указанным айди в системе)
         # и при успешной авторизации - выдать доступ к дальнейшим окнам
+        
         data = self.initDB()
 
         self.logined = False
@@ -813,3 +817,4 @@ class Program(): # main функция GUI программы
 app = QApplication([])
 pr = Program()
 app.exec() # запуск
+
