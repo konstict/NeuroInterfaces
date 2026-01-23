@@ -1,7 +1,6 @@
 import os, math, sys 
 import datetime, time
 import pygame, pandas
-import socket
 
 import cv2, face_recognition
 from mediapipe.python.solutions import face_mesh
@@ -816,3 +815,4 @@ class Program(): # main функция GUI программы
 app = QApplication([])
 pr = Program()
 app.exec() # запуск
+
