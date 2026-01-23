@@ -1,6 +1,7 @@
 import os, math, sys 
 import datetime, time
 import pygame, pandas
+import socket
 
 import cv2, face_recognition
 from mediapipe.python.solutions import face_mesh
@@ -97,9 +98,7 @@ class Program(): # main функция GUI программы
 
 
     def __del__(self): # закрытие программы - прерывание активности сокета и "уничтожение" запущенной программы
-        clientSender.sock.shutdown(0)
-        clientSender.sock.close()
-        clientSender.sock = None
+        clientSender.shutdownSocket()
         sys.exit(0)
     def finishProgram(self): # функция, по названию которой вызывается деструктор
         self.__del__()
@@ -817,4 +816,3 @@ class Program(): # main функция GUI программы
 app = QApplication([])
 pr = Program()
 app.exec() # запуск
-
