@@ -4,7 +4,7 @@ import socket, struct, os, threading
 address, port = '127.0.0.1', 5050
 
 
-def sendFile(sock, path, name):
+def sendFile(sock, path, name): # отправка конкретного файла (размер названия и название, размер данных и данные)
     path, name = str(path), str(name)
 
     pathName = f'{path}{name}'
@@ -25,7 +25,7 @@ def sendFile(sock, path, name):
             dataSize -= 1024
 
 
-def sendAllFiles(sock):
+def sendAllFiles(sock): # отправка всех нужных файлов (БД и фотографии операторов)
     sendFile(sock, './', 'operators_db.csv')
     if not os.path.exists('./operators'):
         os.mkdir('operators')
@@ -34,7 +34,7 @@ def sendAllFiles(sock):
 
 
 sock = None
-def client():
+def client(): # установление связи с сервером по айпи адресу и порту
     try:
         global sock
         sock = socket.create_connection((address, port))
@@ -44,7 +44,7 @@ def client():
         print('client')
 
 
-def main():
+def main(): # запуск клиента в новом потоке
     try:
         thr = threading.Thread(target=client, daemon=False)
         thr.start()
@@ -53,4 +53,5 @@ def main():
 
 
 if __name__ == '__main__':
+
     main()
