@@ -38,7 +38,7 @@ def recvAllFiles(sock): # принять все файлы
         recvFile(sock)
 
 
-sock = None
+sock = socket.socket()
 def server(): # создание сервера, установление связи с клиентом
     try:
         global sock
@@ -49,6 +49,19 @@ def server(): # создание сервера, установление свя
                 recvAllFiles(conn)
     except:
         print('server')
+
+
+def shutdownSocket():
+    try:
+        global sock
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        sock.close()
+        sock = None
+    except:
+        pass
 
 
 def main(): # запуск сервера в новом потоке
