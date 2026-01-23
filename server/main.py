@@ -1,8 +1,11 @@
-import os, math, pandas, datetime, time, sys, pygame
+import os, math, sys 
+import datetime, time
+import pygame, pandas
 
 from PyQt5.QtCore import QTimer, QPoint, Qt
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from PyQt5.QtGui import QImage, QPixmap
+
 
 from setid import Ui_MainWindow as setidClass
 from upr import Ui_MainWindow as uprClass
@@ -182,4 +185,5 @@ class Program():
 
 app = QApplication([])
 pr = Program()
+
 app.exec()
