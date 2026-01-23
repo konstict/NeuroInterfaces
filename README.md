@@ -29,7 +29,8 @@ Server - серверная часть (Удаленная программа д
 <img width="1013" height="513" alt="image" src="https://github.com/user-attachments/assets/4d98ef23-6194-4c5c-a87c-29127fd6c3f5" />
 Состояние внимание:
 <img width="1013" height="514" alt="image" src="https://github.com/user-attachments/assets/bc898dd4-e372-4169-8900-2574c088fb2b" />
-
+Состояние критично:
+<img width="1024" height="517" alt="image" src="https://github.com/user-attachments/assets/93eb8d76-c52d-41dd-a6f6-d254d4872c45" />
 
 
 # Server:
