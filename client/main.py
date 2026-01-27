@@ -61,12 +61,16 @@ class Program(): # main функция GUI программы
         self.cap = None
         self.cameraUpdateTimer = QTimer()
         self.cameraUpdateTimer.timeout.connect(self.updateCamera)
-        self.pulseTime = 0
-        self.latestUpdatePulseTime = 0
+
+        self.cap = None
+        self.cameraUpdateAfterTimer = QTimer()
+        self.cameraUpdateAfterTimer.timeout.connect(self.updateCameraAfter)
 
         self.com = None
         self.pulseUpdateTimer = QTimer()
         self.pulseUpdateTimer.timeout.connect(self.updatePulse)
+        self.pulseTime = 0
+        self.latestUpdatePulseTime = 0
 
         self.video = None
         self.videoUpdateTimer = QTimer()
@@ -344,7 +348,7 @@ class Program(): # main функция GUI программы
         if len(locations) > 0:
             location = locations[0]
             for i in locations:
-                if (location[1]-location[3])*(location[2]-location[0]) > (i[1]-i[3])*(i[2]-i[0]):
+                if (location[1]-location[3])*(location[2]-location[0]) < (i[1]-i[3])*(i[2]-i[0]):
                     location = i
 
             self.operatorFace = frame[location[0]-25:location[2]+25, location[3]-25:location[1]+25]
@@ -504,12 +508,13 @@ class Program(): # main функция GUI программы
             else:
                 continue
             result = face_recognition.compare_faces([faceEnc], self.operatorFaceEnc)
+
             for i in result:
                 self.found = i or self.found
-        
-        if self.found:
-            self.createIdentWindow()
-            return
+            if self.found:
+                self.saveAttacker()
+                self.createIdentWindow()
+                return
         
         middleName = ' '
         if self.regUI.plainTextEdit_3.toPlainText().strip() != '':
@@ -530,8 +535,6 @@ class Program(): # main функция GUI программы
     def finishAuthOperator(self):
         # завершение авторизации оператора (проверка на нахождение данного оператора под указанным айди в системе)
         # и при успешной авторизации - выдать доступ к дальнейшим окнам
-        
-        data = self.initDB()
 
         self.logined = False
         self.after = 1
@@ -554,11 +557,26 @@ class Program(): # main функция GUI программы
             self.found = i or self.found
         
         if not self.found:
+            self.saveAttacker()
             self.createIdentWindow()
             return
 
         self.found = False
         self.logined = True
+
+
+    def saveAttacker(self):
+        if not os.path.exists('./attackers'):
+            os.mkdir('attackers')
+
+        dirSize = len(os.listdir('./attackers'))
+        photoID = dirSize + 1
+        if self.after == 0:
+            name = f'./attackers/REG_{photoID}.jpg'
+        else:
+            name = f'./attackers/LOG_{photoID}.jpg'
+
+        cv2.imwrite(f'{str(name)}', self.operatorFace)
 
 
     def startCameraUprUpdate(self): # безопасно запустить камеру для формы Управление
