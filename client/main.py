@@ -41,10 +41,13 @@ class Program(): # main функция GUI программы
 
         self.operatorFace = None
         self.operatorFaceEnc = None
+
         self.operatorID = 0
         self.operatorInfo = {}
         self.operatorState = 0
+
         self.pulse = 0
+        self.pulseValue = 0
         self.pulseDeque = deque(maxlen=10)
 
         self.timeNow = datetime.datetime.now()
@@ -58,6 +61,8 @@ class Program(): # main функция GUI программы
         self.cap = None
         self.cameraUpdateTimer = QTimer()
         self.cameraUpdateTimer.timeout.connect(self.updateCamera)
+        self.pulseTime = 0
+        self.latestUpdatePulseTime = 0
 
         self.com = None
         self.pulseUpdateTimer = QTimer()
@@ -373,15 +378,24 @@ class Program(): # main функция GUI программы
     def updatePulse(self): # обновление пульса (из платы Arduino)
         try:
             if self.com.in_waiting > 0:
-                value = int(self.com.readline())
+                self.pulseValue = int(self.com.readline())
 
-                self.pulseDeque.append(value)
+                self.pulseDeque.append(self.pulseValue)
                 pulseSum = 0
                 for i in self.pulseDeque:
                     pulseSum += i
                 self.pulse = int(pulseSum / self.pulseDeque.maxlen)
 
+                self.pulseTime = 0
+
                 # print(self.pulse)
+
+            self.pulseTime += time.time() - self.latestUpdatePulseTime
+            if self.pulseValue <= 12 or self.pulseTime >= 5:
+                self.pulse = 0
+            # print(self.pulseTime)
+            self.latestUpdatePulseTime = time.time()
+
         except:
             self.pulseUpdateTimer.stop()
             self.pulse = 0
@@ -641,6 +655,10 @@ class Program(): # main функция GUI программы
             pass
         try:
             self.analiz.close()
+        except:
+            pass
+        try:
+            self.upr.close()
         except:
             pass
 
