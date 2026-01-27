@@ -39,16 +39,9 @@ class Program(): # main функция GUI программы
         self.found = False
         self.fullMode = False
 
-        self.operatorFace = None
-        self.operatorFaceEnc = None
-
         self.operatorID = 0
         self.operatorInfo = {}
         self.operatorState = 0
-
-        self.pulse = 0
-        self.pulseValue = 0
-        self.pulseDeque = deque(maxlen=10)
 
         self.timeNow = datetime.datetime.now()
         self.timeStart = datetime.datetime.now()
@@ -59,6 +52,10 @@ class Program(): # main функция GUI программы
         self.timeUpdateTimer.start(1000)
 
         self.cap = None
+        self.operatorFace = None
+        self.operatorFaceEnc = None
+        self.frameCounter = 0
+        self.location = []
         self.cameraUpdateTimer = QTimer()
         self.cameraUpdateTimer.timeout.connect(self.updateCamera)
 
@@ -66,11 +63,14 @@ class Program(): # main функция GUI программы
         self.cameraUpdateAfterTimer = QTimer()
         self.cameraUpdateAfterTimer.timeout.connect(self.updateCameraAfter)
 
+        self.pulse = 0
+        self.pulseValue = 0
+        self.pulseDeque = deque(maxlen=10)
         self.com = None
-        self.pulseUpdateTimer = QTimer()
-        self.pulseUpdateTimer.timeout.connect(self.updatePulse)
         self.pulseTime = 0
         self.latestUpdatePulseTime = 0
+        self.pulseUpdateTimer = QTimer()
+        self.pulseUpdateTimer.timeout.connect(self.updatePulse)
 
         self.video = None
         self.videoUpdateTimer = QTimer()
@@ -344,31 +344,39 @@ class Program(): # main функция GUI программы
         if not ok:
             return
         
-        locations = face_recognition.face_locations(frame)
-        if len(locations) > 0:
-            location = locations[0]
-            for i in locations:
-                if (location[1]-location[3])*(location[2]-location[0]) < (i[1]-i[3])*(i[2]-i[0]):
-                    location = i
+        self.frameCounter += 1
+        if self.frameCounter > 10:
+            self.frameCounter = 0
 
-            self.operatorFace = frame[location[0]-25:location[2]+25, location[3]-25:location[1]+25]
-            faceEncs = face_recognition.face_encodings(frame, [location])
-            if len(faceEncs) > 0:
-                self.operatorFaceEnc = faceEncs[0]
-            else:
-                return
-            
-            cv2.rectangle(frameRect, (location[3], location[0]), (location[1], location[2]), (255,255,255), 5)
+            locations = face_recognition.face_locations(frame)
+            if len(locations) > 0:
+                self.location = locations[0]
+                for i in locations:
+                    if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
+                        self.location = i
 
-            if self.windowID == 2:
-                self.finishRegOperator()
-            if self.windowID == 4:
-                self.finishAuthOperator()
+                self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
+                faceEncs = face_recognition.face_encodings(frame, [self.location])
+                if len(faceEncs) > 0:
+                    self.operatorFaceEnc = faceEncs[0]
+                else:
+                    return
 
-            self.cameraUpdateTimer.stop()
-            self.cap.release()
-            self.cap = None
+                if self.windowID == 2:
+                    self.finishRegOperator()
+                if self.windowID == 4:
+                    self.finishAuthOperator()
 
+                self.cameraUpdateTimer.stop()
+                if self.logined:
+                    self.startCameraAfterOperator()
+                else:
+                    self.finishCamera()
+
+        try:
+            cv2.rectangle(frameRect, (self.location[3], self.location[0]), (self.location[1], self.location[2]), (255,255,255), 5)
+        except:
+            pass
         if self.windowID == 2:
             self.regUI.label_11.setPixmap(QPixmap.fromImage(
                 QImage(cv2.cvtColor(cv2.resize(frameRect, (1920,1080), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB), 1920, 1080, QImage.Format.Format_RGB888)
@@ -378,6 +386,57 @@ class Program(): # main функция GUI программы
                 QImage(cv2.cvtColor(cv2.resize(frameRect, (1920,1080), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB), 1920, 1080, QImage.Format.Format_RGB888)
             ))
         
+
+    def updateCameraAfter(self): # обновление камеры и нахождения лица после идентификации в "реальном времени"
+        if not (self.windowID == 2 or self.windowID == 4):
+            self.finishCameraAfter()
+            return
+        
+        ok, frame = self.cap.read()
+        frameRect = frame.copy()
+        if not ok:
+            return
+        
+        self.frameCounter += 1
+        if self.frameCounter > 10:
+            self.frameCounter = 0
+
+            locations = face_recognition.face_locations(frame)
+            if len(locations) > 0:
+                self.location = locations[0]
+                for i in locations:
+                    if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
+                        self.location = i
+
+                self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
+                faceEncs = face_recognition.face_encodings(frame, [self.location])
+                if len(faceEncs) > 0:
+                    self.operatorFaceEnc = faceEncs[0]
+                else:
+                    return
+
+                self.finishAuthOperator()
+
+                if not self.logined:
+                    self.finishCameraAfter()
+            else:
+                self.logined = False
+                self.createIdentWindow()
+                self.finishCameraAfter()
+
+        try:
+            cv2.rectangle(frameRect, (self.location[3], self.location[0]), (self.location[1], self.location[2]), (255,255,255), 5)
+        except:
+            pass
+        if self.windowID == 2:
+            self.regUI.label_11.setPixmap(QPixmap.fromImage(
+                QImage(cv2.cvtColor(cv2.resize(frameRect, (1920,1080), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB), 1920, 1080, QImage.Format.Format_RGB888)
+            ))
+        elif self.windowID == 4:
+            self.authUI.label_11.setPixmap(QPixmap.fromImage(
+                QImage(cv2.cvtColor(cv2.resize(frameRect, (1920,1080), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB), 1920, 1080, QImage.Format.Format_RGB888)
+            ))
+
 
     def updatePulse(self): # обновление пульса (из платы Arduino)
         try:
@@ -490,7 +549,6 @@ class Program(): # main функция GUI программы
         data = self.initDB()
 
         self.logined = False
-        self.after = 0
 
         self.operatorID = 0
         for i in data.to_dict('records'):
@@ -516,20 +574,25 @@ class Program(): # main функция GUI программы
                 self.createIdentWindow()
                 return
         
-        middleName = ' '
-        if self.regUI.plainTextEdit_3.toPlainText().strip() != '':
-            middleName = self.regUI.plainTextEdit_3.toPlainText().strip()
-        self.operatorInfo = {
-            'id': self.operatorID,
-            'last_name': self.regUI.plainTextEdit.toPlainText().strip(), 'first_name': self.regUI.plainTextEdit_2.toPlainText().strip(), 'middle_name': middleName, 
-            'age': self.regUI.plainTextEdit_4.toPlainText().strip(), 
-            'date': self.timeNow.strftime('%d-%m-%Y'), 'time': self.timeNow.strftime('%H:%M:%S'), 'software_start_time': self.timeStart.strftime('%H:%M:%S'), 
-            'drive_duration': '00:00:00', 'pulse_threshold_critical': 0, 'pulse_normal': 0, 'current_pulse': 0, 'operator_status': 'NORMAL'
-        }
-        pandas.concat([data, pandas.DataFrame([self.operatorInfo])], ignore_index=True).to_csv('./operators_db.csv', index=False)
-        cv2.imwrite(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg', self.operatorFace)
+        try:
+            middleName = ' '
+            if self.regUI.plainTextEdit_3.toPlainText().strip() != '':
+                middleName = self.regUI.plainTextEdit_3.toPlainText().strip()
+            self.operatorInfo = {
+                'id': self.operatorID,
+                'last_name': self.regUI.plainTextEdit.toPlainText().strip(), 'first_name': self.regUI.plainTextEdit_2.toPlainText().strip(), 'middle_name': middleName, 
+                'age': self.regUI.plainTextEdit_4.toPlainText().strip(), 
+                'date': self.timeNow.strftime('%d-%m-%Y'), 'time': self.timeNow.strftime('%H:%M:%S'), 'software_start_time': self.timeStart.strftime('%H:%M:%S'), 
+                'drive_duration': '00:00:00', 'pulse_threshold_critical': 0, 'pulse_normal': 0, 'current_pulse': 0, 'operator_status': 'NORMAL'
+            }
+            pandas.concat([data, pandas.DataFrame([self.operatorInfo])], ignore_index=True).to_csv('./operators_db.csv', index=False)
+            cv2.imwrite(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg', self.operatorFace)
 
-        self.logined = True
+            self.logined = True
+        except:
+            self.saveAttacker()
+            self.createIdentWindow()
+            return
 
 
     def finishAuthOperator(self):
@@ -537,9 +600,8 @@ class Program(): # main функция GUI программы
         # и при успешной авторизации - выдать доступ к дальнейшим окнам
 
         self.logined = False
-        self.after = 1
-
         self.found = False
+
         if not os.path.exists('./operators'):
             os.mkdir('operators')
         if not os.path.exists(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg'):
@@ -565,6 +627,11 @@ class Program(): # main функция GUI программы
         self.logined = True
 
 
+    def finishCameraAfter(self): # безопасно остановить камеру записи в "реальном времени" после идентификации пользователя
+        self.finishCamera()
+        self.cameraUpdateAfterTimer.stop()
+
+
     def saveAttacker(self): # сохранение злоумышленника, если идентификация не успешная
         if not os.path.exists('./attackers'):
             os.mkdir('attackers')
@@ -576,15 +643,22 @@ class Program(): # main функция GUI программы
         else:
             name = f'./attackers/LOG_{photoID}.jpg'
 
-        cv2.imwrite(f'{str(name)}', self.operatorFace)
+        try:
+            cv2.imwrite(f'{str(name)}', self.operatorFace)
+        except:
+            pass
+
+
+    def finishCamera(self):
+        self.cap.release()
+        self.cap = None
 
 
     def startCameraUprUpdate(self): # безопасно запустить камеру для формы Управление
         if self.cameraUprUpdateTimer.isActive():
             return
         if self.cap is not None:
-            self.cap.release()
-            self.cap = None
+            self.finishCamera()
         self.cap = cv2.VideoCapture(0)
         self.cameraUprUpdateTimer.start(20)
 
@@ -599,7 +673,7 @@ class Program(): # main функция GUI программы
         self.videoUpdateTimer.start(20)
 
 
-    def startPulseUpdate(self): # безопасно запустить получение пульса для формы Управление
+    def startPulseUpdate(self): # безопасно запустить получение пульса
         if self.pulseUpdateTimer.isActive():
             return
         self.pulse = 0
@@ -637,12 +711,19 @@ class Program(): # main функция GUI программы
             operatorIndex += 1
 
 
+    def startCameraAfterOperator(self): # безопасно запустить камеру для записи в "реальном времени" после идентификации пользователя
+        if self.cameraUpdateAfterTimer.isActive():
+            self.cameraUpdateAfterTimer.stop()
+        if self.cap is None:
+            self.cap = cv2.VideoCapture(0)
+        self.cameraUpdateAfterTimer.start(20)
+
+
     def startAuthOperator(self): # безопасно запустить камеру для авторизации пользователя
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
         if self.cap is not None:
-            self.cap.release()
-            self.cap = None
+            self.finishCamera()
         self.cap = cv2.VideoCapture(0)
         self.cameraUpdateTimer.start(20)
 
@@ -651,8 +732,7 @@ class Program(): # main функция GUI программы
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
         if self.cap is not None:
-            self.cap.release()
-            self.cap = None
+            self.finishCamera()
         if self.regUI.plainTextEdit.toPlainText().strip() == '' or self.regUI.plainTextEdit_2.toPlainText().strip() == '' or not self.regUI.plainTextEdit_4.toPlainText().isdigit():
             return
         self.cap = cv2.VideoCapture(0)
@@ -686,6 +766,7 @@ class Program(): # main функция GUI программы
 
     def createRegWindow(self): # форма регистрации
         self.windowID = 2
+        self.after = 0
         self.reg = QMainWindow()
         self.regUI = regClass()
         self.regUI.setupUi(self.reg)
@@ -730,6 +811,7 @@ class Program(): # main функция GUI программы
             return
         
         self.windowID = 4
+        self.after = 1
         self.auth = QMainWindow()
         self.authUI = authClass()
         self.authUI.setupUi(self.auth)
@@ -760,7 +842,7 @@ class Program(): # main функция GUI программы
 
 
     def createInstrWindow(self): # форма инструкции
-        if not self.found and not self.logined:
+        if not self.found or not self.logined:
             return
         
         self.windowID = 5
@@ -850,4 +932,3 @@ class Program(): # main функция GUI программы
 app = QApplication([])
 pr = Program()
 app.exec() # запуск
-
