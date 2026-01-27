@@ -111,7 +111,7 @@ class Program(): # main функция GUI программы
             self.uprUI.label_23.setText(f"{datetime.datetime.strptime(str(leftDriveDurationDelta), '%H:%M:%S').strftime('%H:%M:%S')}")
 
             if self.operatorInfo['operator_status'] == 'NORMAL':
-                self.uprUI.label_28.setText('НОРМАЛЬНО')
+                self.uprUI.label_28.setText('НОРМА')
                 self.uprUI.label_28.setStyleSheet('color: rgb(0,200,0)')
                 self.uprUI.label_30.setStyleSheet('color: rgb(0,200,0); background-color: rgba(0,0,0,0)')
                 self.uprUI.label_7.setPixmap(QPixmap('./files/Blue_ellipse.png'))
