@@ -59,7 +59,6 @@ class Program(): # main функция GUI программы
         self.cameraUpdateTimer = QTimer()
         self.cameraUpdateTimer.timeout.connect(self.updateCamera)
 
-        self.cap = None
         self.cameraUpdateAfterTimer = QTimer()
         self.cameraUpdateAfterTimer.timeout.connect(self.updateCameraAfter)
 
@@ -76,10 +75,8 @@ class Program(): # main функция GUI программы
         self.videoUpdateTimer = QTimer()
         self.videoUpdateTimer.timeout.connect(self.videoUpdate)
         
-        self.cap = None
         self.cameraUprUpdateTimer = QTimer()
         self.cameraUprUpdateTimer.timeout.connect(self.updateCameraUpr)
-
         self.faceMesh = face_mesh.FaceMesh(
             max_num_faces=1,
             min_detection_confidence=0.6,
@@ -348,30 +345,33 @@ class Program(): # main функция GUI программы
         if self.frameCounter > 10:
             self.frameCounter = 0
 
-            locations = face_recognition.face_locations(frame)
-            if len(locations) > 0:
-                self.location = locations[0]
-                for i in locations:
-                    if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
-                        self.location = i
+            try:
+                locations = face_recognition.face_locations(frame)
+                if len(locations) > 0:
+                    self.location = locations[0]
+                    for i in locations:
+                        if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
+                            self.location = i
 
-                self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
-                faceEncs = face_recognition.face_encodings(frame, [self.location])
-                if len(faceEncs) > 0:
-                    self.operatorFaceEnc = faceEncs[0]
-                else:
-                    return
+                    self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
+                    faceEncs = face_recognition.face_encodings(frame, [self.location])
+                    if len(faceEncs) > 0:
+                        self.operatorFaceEnc = faceEncs[0]
+                    else:
+                        return
 
-                if self.windowID == 2:
-                    self.finishRegOperator()
-                if self.windowID == 4:
-                    self.finishAuthOperator()
+                    if self.windowID == 2:
+                        self.finishRegOperator()
+                    if self.windowID == 4:
+                        self.finishAuthOperator()
 
-                self.cameraUpdateTimer.stop()
-                if self.logined:
-                    self.startCameraAfterOperator()
-                else:
-                    self.finishCamera()
+                    self.cameraUpdateTimer.stop()
+                    if self.logined:
+                        self.startCameraAfterOperator()
+                    else:
+                        self.finishCamera()
+            except:
+                pass
 
         try:
             cv2.rectangle(frameRect, (self.location[3], self.location[0]), (self.location[1], self.location[2]), (255,255,255), 5)
@@ -401,25 +401,30 @@ class Program(): # main функция GUI программы
         if self.frameCounter > 10:
             self.frameCounter = 0
 
-            locations = face_recognition.face_locations(frame)
-            if len(locations) > 0:
-                self.location = locations[0]
-                for i in locations:
-                    if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
-                        self.location = i
+            try:
+                locations = face_recognition.face_locations(frame)
+                if len(locations) > 0:
+                    self.location = locations[0]
+                    for i in locations:
+                        if (self.location[1]-self.location[3])*(self.location[2]-self.location[0]) < (i[1]-i[3])*(i[2]-i[0]):
+                            self.location = i
 
-                self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
-                faceEncs = face_recognition.face_encodings(frame, [self.location])
-                if len(faceEncs) > 0:
-                    self.operatorFaceEnc = faceEncs[0]
+                    self.operatorFace = frame[self.location[0]-25:self.location[2]+25, self.location[3]-25:self.location[1]+25]
+                    faceEncs = face_recognition.face_encodings(frame, [self.location])
+                    if len(faceEncs) > 0:
+                        self.operatorFaceEnc = faceEncs[0]
+                    else:
+                        return
+
+                    self.finishAuthOperator()
+
+                    if not self.logined:
+                        self.finishCameraAfter()
                 else:
-                    return
-
-                self.finishAuthOperator()
-
-                if not self.logined:
+                    self.logined = False
+                    self.createIdentWindow()
                     self.finishCameraAfter()
-            else:
+            except:
                 self.logined = False
                 self.createIdentWindow()
                 self.finishCameraAfter()
@@ -559,27 +564,32 @@ class Program(): # main функция GUI программы
         data = self.initDB()
 
         self.logined = False
+        self.found = False
 
         self.operatorID = 0
         for i in data.to_dict('records'):
             self.operatorID = max(int(i['id']), self.operatorID)
         self.operatorID += 1
 
-        self.found = False
         if not os.path.exists('./operators'):
             os.mkdir('operators')
         for i in os.listdir('./operators'):
-            face = cv2.imread(f'./operators/{i}')
-            faceEncs = face_recognition.face_encodings(face)
-            if len(faceEncs) > 0:
-                faceEnc = faceEncs[0]
-            else:
-                continue
-            result = face_recognition.compare_faces([faceEnc], self.operatorFaceEnc)
+            try:
+                face = cv2.imread(f'./operators/{i}')
+                faceEncs = face_recognition.face_encodings(face)
+                if len(faceEncs) > 0:
+                    faceEnc = faceEncs[0]
+                else:
+                    continue
+                result = face_recognition.compare_faces([faceEnc], self.operatorFaceEnc)
 
-            for i in result:
-                self.found = i or self.found
-            if self.found:
+                for i in result:
+                    self.found = i or self.found
+                if self.found:
+                    self.saveAttacker()
+                    self.createIdentWindow()
+                    return
+            except:
                 self.saveAttacker()
                 self.createIdentWindow()
                 return
@@ -617,16 +627,21 @@ class Program(): # main функция GUI программы
         if not os.path.exists(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg'):
             self.createIdentWindow()
             return
-        face = cv2.imread(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg')
-        faceEncs = face_recognition.face_encodings(face)
-        if len(faceEncs) > 0:
-            faceEnc = faceEncs[0]
-        else:
+        try:
+            face = cv2.imread(f'./operators/ID_{str(self.operatorID).zfill(6)}.jpg')
+            faceEncs = face_recognition.face_encodings(face)
+            if len(faceEncs) > 0:
+                faceEnc = faceEncs[0]
+            else:
+                self.createIdentWindow()
+                return
+            result = face_recognition.compare_faces([faceEnc], self.operatorFaceEnc)
+            for i in result:
+                self.found = i or self.found
+        except:
+            self.saveAttacker()
             self.createIdentWindow()
             return
-        result = face_recognition.compare_faces([faceEnc], self.operatorFaceEnc)
-        for i in result:
-            self.found = i or self.found
         
         if not self.found:
             self.saveAttacker()
@@ -660,15 +675,15 @@ class Program(): # main функция GUI программы
 
 
     def finishCamera(self):
-        self.cap.release()
-        self.cap = None
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None
 
 
     def startCameraUprUpdate(self): # безопасно запустить камеру для формы Управление
         if self.cameraUprUpdateTimer.isActive():
             return
-        if self.cap is not None:
-            self.finishCamera()
+        self.finishCamera()
         self.cap = cv2.VideoCapture(0)
         self.cameraUprUpdateTimer.start(20)
 
@@ -732,8 +747,7 @@ class Program(): # main функция GUI программы
     def startAuthOperator(self): # безопасно запустить камеру для авторизации пользователя
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
-        if self.cap is not None:
-            self.finishCamera()
+        self.finishCamera()
         self.cap = cv2.VideoCapture(0)
         self.cameraUpdateTimer.start(20)
 
@@ -741,8 +755,7 @@ class Program(): # main функция GUI программы
     def startRegOperator(self): # безопасно запустить камеру для регистрации пользователя, если он указал валидные значения про себя
         if self.cameraUpdateTimer.isActive():
             self.cameraUpdateTimer.stop()
-        if self.cap is not None:
-            self.finishCamera()
+        self.finishCamera()
         if self.regUI.plainTextEdit.toPlainText().strip() == '' or self.regUI.plainTextEdit_2.toPlainText().strip() == '' or not self.regUI.plainTextEdit_4.toPlainText().isdigit():
             return
         self.cap = cv2.VideoCapture(0)
