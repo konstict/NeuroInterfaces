@@ -294,6 +294,10 @@ class Program(): # main функция GUI программы
                 self.uprUI.label_12.setText('')
             elif self.operatorState == 1:
                 try:
+                    pygame.mixer.init()
+                except:
+                    pass
+                try:
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load('./files/yellowSound.mp3')
                         pygame.mixer.music.play()
@@ -310,6 +314,10 @@ class Program(): # main функция GUI программы
                 self.uprUI.label_11.setText(f'Пульс {self.pulse}')
                 self.uprUI.label_12.setText('Запуск звукового оповещения "ВНИМАНИЕ"')
             else:
+                try:
+                    pygame.mixer.init()
+                except:
+                    pass
                 try:
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load('./files/redSound.mp3')
