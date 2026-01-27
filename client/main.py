@@ -577,14 +577,13 @@ class Program(): # main функция GUI программы
         
         for i,j,k in list_ports.comports():
             if 'Arduino' in j:
-                self.com = serial.Serial(i)
-                self.com.close()
                 try:
+                    self.com = serial.Serial(i)
+                    self.com.close()
                     self.com.open()
+                    self.pulseUpdateTimer.start(50)
                 except:
                     return
-                self.pulseUpdateTimer.start(50)
-                return
 
 
     def startRegOperatorPulse(self): # записывает порог и норму пульса, срабатывает при нажатии на кнопку
