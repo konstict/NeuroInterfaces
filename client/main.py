@@ -468,6 +468,7 @@ class Program(): # main функция GUI программы
     def updateCameraUpr(self): # обновление камеры в последней форме Управление
         ok, frame = self.cap.read()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        rgbRect = rgb.copy()
         if not ok:
             return
         
@@ -477,7 +478,16 @@ class Program(): # main функция GUI программы
             self.earTime = 10
         else:
             landmarks = process[0].landmark
-            
+
+            minCoord = (1,1)
+            maxCoord = (0,0)
+            for i in landmarks:
+                minCoord = min(minCoord[0], i.x), min(minCoord[1], i.y)
+                maxCoord = max(maxCoord[0], i.x), max(maxCoord[1], i.y)
+            minCoord = (int(minCoord[0]*640), int(minCoord[1]*480))
+            maxCoord = (int(maxCoord[0]*640), int(maxCoord[1]*480))
+            cv2.rectangle(rgbRect, minCoord, maxCoord, (255,255,255), 3)
+
             # leftEye = {}
             # for i in face_mesh.FACEMESH_RIGHT_EYE:
             #     leftEye[i[0]] = landmarks[i[0]]
@@ -511,7 +521,7 @@ class Program(): # main функция GUI программы
         
         if self.windowID == 7:
             self.uprUI.label_13.setPixmap(QPixmap.fromImage(
-                QImage(cv2.resize(rgb, (1920,1080), interpolation=cv2.INTER_AREA), 1920, 1080, QImage.Format.Format_RGB888)
+                QImage(cv2.resize(rgbRect, (1920,1080), interpolation=cv2.INTER_AREA), 1920, 1080, QImage.Format.Format_RGB888)
             ))
 
 
