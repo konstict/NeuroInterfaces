@@ -565,7 +565,7 @@ class Program(): # main функция GUI программы
         self.logined = True
 
 
-    def saveAttacker(self):
+    def saveAttacker(self): # сохранение злоумышленника, если идентификация не успешная
         if not os.path.exists('./attackers'):
             os.mkdir('attackers')
 
