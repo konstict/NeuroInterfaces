@@ -350,7 +350,7 @@ class Program(): # main функция GUI программы
             return
         
         self.frameCounter += 1
-        if self.frameCounter > 10:
+        if self.frameCounter >= 5:
             self.frameCounter = 0
 
             try:
@@ -406,7 +406,7 @@ class Program(): # main функция GUI программы
             return
         
         self.frameCounter += 1
-        if self.frameCounter > 10:
+        if self.frameCounter >= 5:
             self.frameCounter = 0
 
             try:
