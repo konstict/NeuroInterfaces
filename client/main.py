@@ -656,7 +656,7 @@ class Program(): # main функция GUI программы
             self.createIdentWindow()
             return
 
-        self.found = False
+        self.found = True
         self.logined = True
 
 
