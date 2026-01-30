@@ -1,7 +1,9 @@
 vs_BuildTools.exe - Разработка классических приложений для Windows
 cmake latest version
 dlib latest version (or 20.0)
-for RTX 3050: cuda_12.4.0_551.61, cudnn_9.4.0 (other mb too)
+for RTX 3050: cuda_12.4.0_551.61, cudnn_9.4.0 (other mb too). Надо перенести все файлы из CUDNN в CUDA:
+from "NVIDIA/CUDNN/version/bin/version/*" (all files in dir) to "NVIDIA GPU Computing Toolkit/CUDA/version/bin"
+А также установить CUDA/version/bin в PATH
 
 
 cd %USERPROFILE%/downloads
