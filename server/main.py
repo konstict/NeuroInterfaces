@@ -36,6 +36,7 @@ class Program(): # main функция GUI программы
 
     def __del__(self): # закрытие программы - прерывание активности сокета и "уничтожение" запущенной программы
         serverRecver.shutdownSocket()
+        os.kill(os.getpid(), 9)
         sys.exit(0)
     def finishProgram(self): # функция, по названию которой вызывается деструктор
         self.__del__()
